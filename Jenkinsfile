@@ -19,7 +19,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git branch main
+                git branch: main
                     url: 'https://github.com/gowdaamith/python-app.git',
                     credentialsId: 'git-token'
             }
