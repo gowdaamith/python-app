@@ -63,7 +63,7 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                sshagent(['ec2-ssh']) {
+                sshagent(['Ec2access']) {
                     sh """
                     ssh -o StrictHostKeyChecking=no ubuntu@13.204.143.172'
                         docker pull gowdaamith/${APP_NAME}:${params.APP_VERSION} &&
