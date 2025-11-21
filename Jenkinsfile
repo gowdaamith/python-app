@@ -20,7 +20,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 git url: 'https://github.com/gowdaamith/python-app.git',
-                    credentialsId: 'github-token'
+                    credentialsId: 'git-token'
             }
         }
 
@@ -65,7 +65,7 @@ pipeline {
             steps {
                 sshagent(['ec2-ssh']) {
                     sh """
-                    ssh -o StrictHostKeyChecking=no ubuntu@<EC2_IP> '
+                    ssh -o StrictHostKeyChecking=no ubuntu@13.204.143.172'
                         docker pull gowdaamith/${APP_NAME}:${params.APP_VERSION} &&
                         docker stop ${APP_NAME} || true &&
                         docker rm ${APP_NAME} || true &&
