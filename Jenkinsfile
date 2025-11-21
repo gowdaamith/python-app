@@ -12,7 +12,7 @@ pipeline {
     }
 
     environment {
-        APP_NAME = "Python-flask-app"
+        APP_NAME = "python-flask-app"
     }
 
     stages {
