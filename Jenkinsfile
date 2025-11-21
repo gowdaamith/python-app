@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'linux' } 
+    agent { label 'linux' }
 
     options {
         timestamps()
@@ -7,7 +7,7 @@ pipeline {
     }
 
     parameters {
-        choice(name: 'ENV', choices: ['dev', 'stage', 'prod'], description: 'Select the Environment')
+        choice(name: 'ENV', choices: ['dev', 'stage', 'prod'], description: 'Select Environment')
         string(name: 'APP_VERSION', defaultValue: "v1.0.${BUILD_NUMBER}", description: 'App Version')
     }
 
@@ -19,9 +19,11 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git branch: main
+                git(
+                    branch: 'main',
                     url: 'https://github.com/gowdaamith/python-app.git',
                     credentialsId: 'git-token'
+                )
             }
         }
 
@@ -33,7 +35,6 @@ pipeline {
 
         stage('Run tests') {
             steps {
-                // Continue even if tests fail
                 sh 'pytest || true'
             }
         }
@@ -47,7 +48,7 @@ pipeline {
         stage('Docker Push') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                    sh "echo $PASS | docker login -u $USER --password-stdin"
+                    sh "echo \$PASS | docker login -u \$USER --password-stdin"
                     sh "docker push gowdaamith/${APP_NAME}:${params.APP_VERSION}"
                 }
             }
@@ -66,12 +67,15 @@ pipeline {
             steps {
                 sshagent(['Ec2access']) {
                     sh """
-                    ssh -o StrictHostKeyChecking=no ubuntu@13.204.143.172'
-                        docker pull gowdaamith/${APP_NAME}:${params.APP_VERSION} &&
-                        docker stop ${APP_NAME} || true &&
-                        docker rm ${APP_NAME} || true &&
-                        docker run -d --name ${APP_NAME} -p 5000:5000 -e APP_VERSION=${params.APP_VERSION} -e ENVIRONMENT=${params.ENV} gowdaamith/${APP_NAME}:${params.APP_VERSION}
-                    '
+                        ssh -o StrictHostKeyChecking=no ubuntu@13.204.143.172 "
+                            docker pull gowdaamith/${APP_NAME}:${params.APP_VERSION} &&
+                            docker stop ${APP_NAME} || true &&
+                            docker rm ${APP_NAME} || true &&
+                            docker run -d --name ${APP_NAME} -p 5000:5000 \
+                                -e APP_VERSION=${params.APP_VERSION} \
+                                -e ENVIRONMENT=${params.ENV} \
+                                gowdaamith/${APP_NAME}:${params.APP_VERSION}
+                        "
                     """
                 }
             }
@@ -90,3 +94,4 @@ pipeline {
         }
     }
 }
+
